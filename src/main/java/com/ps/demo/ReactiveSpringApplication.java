@@ -10,10 +10,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -42,6 +46,27 @@ class ApplicationInitializer implements ApplicationRunner {
 
 }
 
+@RestController
+@RequestMapping("/musics")
+class MusicController {
+	@Autowired
+	MusicService musicService;
+
+	@GetMapping("/{id}")
+	public Mono<Music> getById(@PathVariable String id) {
+		return this.musicService.findMusicById(id);
+	}
+	@GetMapping
+	public Flux<Music> all() {
+		return this.musicService.findAllMusic();
+	}
+	@GetMapping(value="/{id}/event",produces=MediaType.TEXT_EVENT_STREAM_VALUE )
+	public Flux<MusicEvent> getEventById(@PathVariable String id) {
+		return this.musicService.getMusicEvent(id);
+	}
+	
+}
+
 @Service
 class MusicService {
 	@Autowired
@@ -55,8 +80,8 @@ class MusicService {
 		return musicRepository.findAll();
 	}
 
-	Flux<MusicEvent> getMusicEvent (String id){
-		return Flux.<MusicEvent>generate(sink -> sink.next(new MusicEvent(findMusicById(id),new Date())))
+	Flux<MusicEvent> getMusicEvent(String id) {
+		return Flux.<MusicEvent>generate(sink -> sink.next(new MusicEvent(id, new Date())))
 				.delayElements(Duration.ofSeconds(2));
 	}
 }
@@ -66,25 +91,25 @@ interface MusicRepository extends ReactiveMongoRepository<Music, String> {
 }
 
 class MusicEvent {
-	private Mono<Music> music;
+	private String id;
 	private Date date;
 
 	public MusicEvent() {
 		super();
 	}
 
-	public MusicEvent(Mono<Music> music, Date date) {
+	public MusicEvent(String id, Date date) {
 		super();
-		this.music = music;
+		this.id = id;
 		this.date = date;
 	}
 
-	public Mono<Music> getMusic() {
-		return music;
+	public String getId() {
+		return id;
 	}
 
-	public void setMusic(Mono<Music> music) {
-		this.music = music;
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public Date getDate() {
@@ -97,7 +122,7 @@ class MusicEvent {
 
 	@Override
 	public String toString() {
-		return "MusicEvent [music=" + music + ", date=" + date + "]";
+		return "MusicEvent [id=" + id + ", date=" + date + "]";
 	}
 
 }
