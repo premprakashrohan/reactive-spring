@@ -1,5 +1,6 @@
 package com.ps.demo;
 
+import java.time.Duration;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,58 +26,82 @@ public class ReactiveSpringApplication {
 	}
 
 }
+
 @Component
-class ApplicationInitializer implements ApplicationRunner{
-@Autowired
-MusicRepository repo;
+class ApplicationInitializer implements ApplicationRunner {
+	@Autowired
+	MusicRepository repo;
+
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		Flux<Music> musicFlux = Flux.just("Main Tera hero","Jadu teri nazar","Mere hathon mein nau nau","Ruk jana nahin")
-		.map(m -> new Music(null , m)).flatMap(repo::save);
+		Flux<Music> musicFlux = Flux
+				.just("Main Tera hero", "Jadu teri nazar", "Mere hathon mein nau nau", "Ruk jana nahin")
+				.map(m -> new Music(null, m)).flatMap(repo::save);
 		repo.deleteAll().thenMany(musicFlux).thenMany(repo.findAll()).subscribe(System.out::println);
 	}
-	
+
 }
+
 @Service
 class MusicService {
 	@Autowired
 	MusicRepository musicRepository;
 
-	Mono<Music> findById(String id){
+	Mono<Music> findMusicById(String id) {
 		return musicRepository.findById(id);
 	}
-	Flux<Music> findAll(){
+
+	Flux<Music> findAllMusic() {
 		return musicRepository.findAll();
 	}
-	
-	Mono<MusicEvent> getEvent (String id){
-		return null;
+
+	Flux<MusicEvent> getMusicEvent (String id){
+		return Flux.<MusicEvent>generate(sink -> sink.next(new MusicEvent(findMusicById(id),new Date())))
+				.delayElements(Duration.ofSeconds(2));
 	}
 }
-interface MusicRepository extends ReactiveMongoRepository<Music, String>{
-	
+
+interface MusicRepository extends ReactiveMongoRepository<Music, String> {
+
 }
-class MusicEvent{
-	private Music music;
+
+class MusicEvent {
+	private Mono<Music> music;
 	private Date date;
-	public Music getMusic() {
+
+	public MusicEvent() {
+		super();
+	}
+
+	public MusicEvent(Mono<Music> music, Date date) {
+		super();
+		this.music = music;
+		this.date = date;
+	}
+
+	public Mono<Music> getMusic() {
 		return music;
 	}
-	public void setMusic(Music music) {
+
+	public void setMusic(Mono<Music> music) {
 		this.music = music;
 	}
+
 	public Date getDate() {
 		return date;
 	}
+
 	public void setDate(Date date) {
 		this.date = date;
 	}
+
 	@Override
 	public String toString() {
 		return "MusicEvent [music=" + music + ", date=" + date + "]";
 	}
-	
+
 }
+
 @Document
 class Music {
 	@Id
