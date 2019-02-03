@@ -10,9 +10,9 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.ps.reactive</groupId>
-	<artifactId>reactive-client</artifactId>
+	<artifactId>reactive-spring-client</artifactId>
 	<version>1.0.0</version>
-	<name>reactive-spring</name>
+	<name>reactive-spring-client</name>
 	<description>Demo project for Spring Boot for  reactive</description>
 
 	<properties>

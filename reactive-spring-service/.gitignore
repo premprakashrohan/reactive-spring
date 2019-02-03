@@ -1,6 +1,9 @@
-/.project
 /.settings
+/.project
 
 /target
 /.classpath
-
+/.springBeans
+/mvnw
+/mvnw.cmd
+/.mvn/

@@ -26,7 +26,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @SpringBootApplication
-public class ReactiveSpringService {
+public class ReactiveSpringServiceApplication {
 	@Bean
 	RouterFunction<ServerResponse> routerFunction(MusicHandler handler) {
 		return route(GET("/musics"),  handler::all)
@@ -35,7 +35,7 @@ public class ReactiveSpringService {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(ReactiveSpringService.class, args);
+		SpringApplication.run(ReactiveSpringServiceApplication.class, args);
 	}
 
 }
@@ -213,3 +213,4 @@ class Music {
 	}
 
 }
+
