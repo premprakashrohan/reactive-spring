@@ -12,7 +12,7 @@
 	<groupId>com.ps.reactive</groupId>
 	<artifactId>reactive-service</artifactId>
 	<version>1.0.0</version>
-	<name>reactive-spring</name>
+	<name>reactive-service</name>
 	<description>Demo project for Spring Boot for  reactive</description>
 
 	<properties>
