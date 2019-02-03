@@ -12,10 +12,17 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -26,7 +33,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @SpringBootApplication
-public class ReactiveSpringApplication {
+public class ReactiveSpringService {
 	@Bean
 	RouterFunction<ServerResponse> routerFunction(MusicHandler handler) {
 		return route(GET("/musics"),  handler::all)
@@ -35,10 +42,31 @@ public class ReactiveSpringApplication {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(ReactiveSpringApplication.class, args);
+		SpringApplication.run(ReactiveSpringService.class, args);
 	}
 
 }
+/*
+@EnableWebFluxSecurity
+@Configuration
+class SecurityConfiguration{
+	//@Bean
+	ReactiveUserDetailsService authentication() {
+		return new MapReactiveUserDetailsService(
+				User.withUsername("prem").password("p").roles("USERS").build(),
+				User.withUsername("krish").password("p").roles("ADMIN").build());
+	}
+	
+	
+	//@Bean
+	SecurityWebFilterChain autherization (HttpSecurity security) {
+		return null;
+		//return security.httpBasic().and().build();
+	}
+}
+*/
+
+
 
 @Component
 class MusicHandler {
