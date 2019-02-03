@@ -1,5 +1,8 @@
 package com.ps.demo;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+
 import java.time.Duration;
 import java.util.Date;
 
@@ -8,27 +11,52 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 public class ReactiveSpringApplication {
+	@Bean
+	RouterFunction<ServerResponse> routerFunction(MusicHandler handler) {
+		return route(GET("/musics"),  handler::all)
+				.andRoute(GET("/musics/{id}"), handler::getById)
+				.andRoute(GET("/musics/{id}/event"), handler::getEventById);
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(ReactiveSpringApplication.class, args);
 	}
 
+}
+
+@Component
+class MusicHandler {
+	@Autowired
+	MusicService musicService;
+
+	public Mono<ServerResponse> getById(ServerRequest serverRequest) {
+		return ServerResponse.ok().body(musicService.findMusicById(serverRequest.pathVariable("id")), Music.class);
+	}
+
+	public Mono<ServerResponse> all(ServerRequest serverRequest) {
+		return ServerResponse.ok().body(musicService.findAllMusic(), Music.class);
+	}
+
+	public Mono<ServerResponse> getEventById(ServerRequest serverRequest) {
+		return ServerResponse.ok()
+				.contentType(MediaType.TEXT_EVENT_STREAM).body(musicService.getMusicEvent(serverRequest.pathVariable("id")), MusicEvent.class);
+	}
 }
 
 @Component
@@ -46,27 +74,25 @@ class ApplicationInitializer implements ApplicationRunner {
 
 }
 
-@RestController
-@RequestMapping("/musics")
-class MusicController {
-	@Autowired
-	MusicService musicService;
-
-	@GetMapping("/{id}")
-	public Mono<Music> getById(@PathVariable String id) {
-		return this.musicService.findMusicById(id);
-	}
-	@GetMapping
-	public Flux<Music> all() {
-		return this.musicService.findAllMusic();
-	}
-	@GetMapping(value="/{id}/event",produces=MediaType.TEXT_EVENT_STREAM_VALUE )
-	public Flux<MusicEvent> getEventById(@PathVariable String id) {
-		return this.musicService.getMusicEvent(id);
-	}
-	
-}
-
+/*
+ * @RestController
+ * 
+ * @RequestMapping("/musics") class MusicController {
+ * 
+ * @Autowired MusicService musicService;
+ * 
+ * @GetMapping("/{id}") public Mono<Music> getById(@PathVariable String id) {
+ * return this.musicService.findMusicById(id); }
+ * 
+ * @GetMapping public Flux<Music> all() { return
+ * this.musicService.findAllMusic(); }
+ * 
+ * @GetMapping(value="/{id}/event",produces=MediaType.TEXT_EVENT_STREAM_VALUE )
+ * public Flux<MusicEvent> getEventById(@PathVariable String id) { return
+ * this.musicService.getMusicEvent(id); }
+ * 
+ * }
+ */
 @Service
 class MusicService {
 	@Autowired
